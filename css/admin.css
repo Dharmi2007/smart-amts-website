@@ -1,13 +1,31 @@
 body {
-  font-family: Arial;
-  background: #eef2f3;
+  font-family: Arial, sans-serif;
+  background: #ffffff; /* black background */
   padding: 20px;
+  color: white;
 }
 
+/* Dashboard Title */
+h1 {
+  color: #ff2c2c; /* red */
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+/* Cards */
 .card {
-  background: white;
+  background: rgb(0, 0, 0);
+  color: #ffffff;
   padding: 20px;
   margin: 15px 0;
-  border-radius: 10px;
-  box-shadow: 0 0 10px #ccc;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(255, 44, 44, 0.3);
+  font-size: 18px;
+  font-weight: bold;
+  border-left: 6px solid #ff2c2c;
+}
+
+/* Card emojis alignment */
+.card b {
+  color: #ff2c2c;
 }

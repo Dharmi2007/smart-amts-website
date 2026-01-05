@@ -1,4 +1,4 @@
-// ===============================
+// =============================== 
 // Ahmedabad Bus Stops (Autocomplete)
 // ===============================
 const locations = [
@@ -54,7 +54,7 @@ const buses = [
     lat: 23.0300,
     lng: 72.5800,
     crowd: "High",
-    status: "Delayed"
+    status: "Delayedri"
   },
   {
     id: 4,
