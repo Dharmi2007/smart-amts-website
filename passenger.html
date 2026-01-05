@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Passenger | Smart AMTS</title>
+  <link rel="stylesheet" href="css/passenger.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <h2>🚍 Smart AMTS</h2>
+  <button class="map-btn" onclick="toggleMap()">Live Map</button>
+</nav>
+
+<div class="container">
+  <div class="layout">
+
+    <!-- LEFT -->
+    <div class="left-panel">
+
+      <div class="card">
+        <h3>Plan Your Journey</h3>
+
+        <div class="input-group">
+          <input id="from" placeholder="From location"
+            onkeyup="showSuggestions(this,'fromList')">
+          <div class="suggestions" id="fromList"></div>
+        </div>
+
+        <div class="input-group">
+          <input id="to" placeholder="Destination"
+            onkeyup="showSuggestions(this,'toList')">
+          <div class="suggestions" id="toList"></div>
+        </div>
+
+        <button onclick="findBus()">Find Best Bus</button>
+      </div>
+
+      <div class="card hidden" id="busCard">
+        <h3>Available Buses</h3>
+        <div id="busList"></div>
+      </div>
+
+      <div class="card">
+        <h3>📞 Help & Support</h3>
+        <p><b>AMTS Control Room</b></p>
+        <p>📱 +91 98765 43210</p>
+        <p>👤 Helpdesk Officer: Mr. R. Patel</p>
+      </div>
+
+      <div class="card">
+        <h3>🗣 Passenger Feedback</h3>
+        <select id="feedbackText">
+          <option>Bus was overcrowded</option>
+          <option>Bus was late</option>
+          <option>Good service</option>
+        </select>
+        <button onclick="submitFeedback()">Submit Feedback</button>
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-panel hidden" id="mapSection">
+      <div id="map"></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="js/data.js"></script>
+<script src="js/passenger.js"></script>
+
+</body>
+</html>
+
+
+
