@@ -8,13 +8,34 @@
 
 <h1>📊 Admin Dashboard</h1>
 
-<div class="card" id="busCount"></div>
+<div class="card" id="busCount">🚍 Total Running Buses: 12</div>
 <div class="card" id="crowdInfo"></div>
-<div class="card" id="feedbackCount"></div>
+<div class="card">
+  📊 Crowd Analytics
+  <div id="busDetails"></div>
+</div>
 
+<div class="card" onclick="toggleFeedbacks()" style="cursor:pointer">
+  👤 Total Feedbacks: <span id="feedbackCount">0</span>
+</div>
+
+<div id="feedbackSection" style="display:none;" class="feedback-box">
+  <h3>📋 User Reviews</h3>
+  <div id="feedbackList"></div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<!-- Firebase config -->
+<script src="js/firebase.js"></script>
+
+<!-- Data + Admin logic -->
 <script src="js/data.js"></script>
 <script src="js/admin.js"></script>
 
 </body>
 </html>
+
 
