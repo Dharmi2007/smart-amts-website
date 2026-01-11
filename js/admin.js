@@ -1,16 +1,16 @@
 // ===============================
-// Admin Dashboard – Fixed Crowd Analytics + Route-wise Bus Count
+// Admin Dashboard – Firebase Analytics (FINAL WORKING)
 // ===============================
 
 // Firebase references
 const busesRef = database.ref("buses");
 const feedbacksRef = database.ref("feedbacks");
 
-// Global array to store buses
+// Store buses globally
 let busesArray = [];
 
 // ===============================
-// Real-time Buses Listener
+// REAL-TIME BUS ANALYTICS
 // ===============================
 busesRef.on("value", snapshot => {
   const busesData = snapshot.val();
@@ -22,22 +22,21 @@ busesRef.on("value", snapshot => {
   }));
 
   // -----------------------
-  // 1️⃣ Total Running Buses – Route-wise
+  // 1️⃣ Total Running Buses (Route-wise)
   // -----------------------
-  const runningBusesArray = busesArray.filter(bus => bus.status === "Running");
-  const totalRunning = runningBusesArray.length;
+  const runningBuses = busesArray.filter(bus => bus.status === "Running");
+  const totalRunning = runningBuses.length;
 
   const routeCount = {};
-  runningBusesArray.forEach(bus => {
+  runningBuses.forEach(bus => {
     const route = bus.route || "N/A";
-    if (!routeCount[route]) routeCount[route] = 0;
-    routeCount[route]++;
+    routeCount[route] = (routeCount[route] || 0) + 1;
   });
 
-  let busCountHTML = `🚍 Total Running Buses: 1${totalRunning}<br>`;
-  for (const route in routeCount) {
-    busCountHTML += `Route ${route}: ${routeCount[route]} running<br>`;
-  }
+  let busCountHTML = `🚍 <b>Total Running Buses:</b> ${totalRunning}<br>`;
+  Object.keys(routeCount).forEach(route => {
+    busCountHTML += `Route <b>${route}</b>: ${routeCount[route]} buses<br>`;
+  });
 
   document.getElementById("busCount").innerHTML = busCountHTML;
 
@@ -49,39 +48,30 @@ busesRef.on("value", snapshot => {
 
   let peakCrowdBus = null;
   let maxCrowdPercent = -1;
-  let mediumHighCount = 0;
 
   busesArray.forEach(bus => {
     const occupancy = Number(bus.occupancy) || 0;
     const capacity = Number(bus.capacity) || 1;
     const crowdPercent = Math.round((occupancy / capacity) * 100);
 
-    // Determine crowd level
     let crowdLevel = "Low";
     if (crowdPercent >= 70) crowdLevel = "High";
     else if (crowdPercent >= 40) crowdLevel = "Medium";
 
-    // Track peak crowded bus
     if (crowdPercent > maxCrowdPercent) {
       maxCrowdPercent = crowdPercent;
       peakCrowdBus = bus;
     }
 
-    // Count medium/high for feedback simulation
-    if (crowdLevel === "Medium" || crowdLevel === "High") mediumHighCount++;
-
-    bus.crowdLevel = crowdLevel;
-
-    // Create bus detail card
     const div = document.createElement("div");
     div.className = "bus-card";
-    div.style.border = "2px solid #ccc";
+    div.style.border = "2px solid #ddd";
     div.style.padding = "10px";
-    div.style.margin = "5px 0";
-    div.style.borderRadius = "5px";
+    div.style.margin = "8px 0";
+    div.style.borderRadius = "6px";
 
     div.innerHTML = `
-      <strong>Bus Name:</strong> ${bus.name || bus.id}<br>
+      <strong>Bus:</strong> ${bus.name || bus.id}<br>
       <strong>Route:</strong> ${bus.route || "N/A"}<br>
       <strong>Occupancy:</strong> ${occupancy}/${capacity}<br>
       <strong>Crowd Level:</strong> ${crowdLevel} (${crowdPercent}%)
@@ -93,56 +83,33 @@ busesRef.on("value", snapshot => {
   // -----------------------
   // 3️⃣ Peak Crowd Route
   // -----------------------
-  let crowdInfoEl = document.getElementById("crowdInfo");
+  const crowdInfoEl = document.getElementById("crowdInfo");
   if (crowdInfoEl) {
     crowdInfoEl.innerHTML =
-      "🔥 Peak Crowd Route: " + (peakCrowdBus ? (peakCrowdBus.route || peakCrowdBus.name) : "No Data");
+      "🔥 <b>Peak Crowd Route:</b> " +
+      (peakCrowdBus ? (peakCrowdBus.route || peakCrowdBus.name) : "No data");
   }
-
-  // -----------------------
-  // 4️⃣ Simulated Feedbacks
-  // -----------------------
-  document.getElementById("feedbackCount").innerText = mediumHighCount * 2;
 });
 
 // ===============================
-// Route Search Logic
+// FEEDBACK SYSTEM (FIREBASE)
 // ===============================
-const routeInput = document.getElementById("routeSearch");
-const routeResultDiv = document.getElementById("routeResult");
 
-if (routeInput && routeResultDiv) {
-  routeInput.addEventListener("input", () => {
-    const query = routeInput.value.trim().toLowerCase();
-    routeResultDiv.innerHTML = "";
+// 🔢 Real-time feedback count
+feedbacksRef.on("value", snapshot => {
+  const data = snapshot.val();
+  const count = data ? Object.keys(data).length : 0;
 
-    if (!query) return;
+  const feedbackCountEl = document.getElementById("feedbackCount");
+  if (feedbackCountEl) {
+    feedbackCountEl.innerText = count;
+  }
+});
 
-    const matchedBuses = busesArray.filter(bus => (bus.route || "").toLowerCase().includes(query));
-
-    if (matchedBuses.length === 0) {
-      routeResultDiv.innerHTML = "<em>No buses found for this route</em>";
-      return;
-    }
-
-    const totalBuses = matchedBuses.length;
-    const runningBuses = matchedBuses.filter(bus => bus.status === "Running").length;
-    const stoppedBuses = totalBuses - runningBuses;
-
-    routeResultDiv.innerHTML = `
-      <strong>Route: </strong>${matchedBuses[0].route}<br>
-      <strong>Total Buses:</strong> ${totalBuses}<br>
-      <strong>Running:</strong> ${runningBuses}<br>
-      <strong>Stopped:</strong> ${stoppedBuses}
-    `;
-  });
-}
-
-// ===============================
-// TOGGLE FEEDBACKS
-// ===============================
+// Toggle feedback panel
 function toggleFeedbacks() {
   const section = document.getElementById("feedbackSection");
+
   if (section.style.display === "none") {
     section.style.display = "block";
     loadFeedbacks();
@@ -151,37 +118,45 @@ function toggleFeedbacks() {
   }
 }
 
-// ===============================
-// Load Feedbacks from Firebase
-// ===============================
+// Load feedback list
 function loadFeedbacks() {
   const feedbackList = document.getElementById("feedbackList");
   feedbackList.innerHTML = "";
 
-  feedbacksRef.once("value")
-    .then(snapshot => {
-      if (!snapshot.exists()) {
-        feedbackList.innerHTML = "<p>No feedbacks found</p>";
-        return;
-      }
+  feedbacksRef.once("value").then(snapshot => {
+    if (!snapshot.exists()) {
+      feedbackList.innerHTML = "<p>No feedbacks yet</p>";
+      return;
+      div.innerHTML = `
+  <strong>Bus:</strong> ${fb.bus}<br>
+  <strong>Station:</strong> ${fb.station}<br>
+  <strong>Issue:</strong> ${fb.issue}<br>
+  <strong>Message:</strong> ${fb.message}<br>
+  <small>⏰ ${time}</small>
+`;      
+    }
 
-      snapshot.forEach(child => {
-        const data = child.val();
+    snapshot.forEach(child => {
+      const fb = child.val();
 
-        const div = document.createElement("div");
-        div.className = "feedback-item";
-        div.innerHTML = `
-          ⭐ Rating: ${data.rating || "N/A"}<br>
-          🚌 Route: ${data.route || "N/A"}<br>
-          💬 ${data.message || "No message"}<br>
-          ⏰ ${data.time || ""}
-        `;
+      const time = fb.time
+        ? new Date(fb.time).toLocaleString()
+        : "Invalid Date";
 
-        feedbackList.appendChild(div);
-      });
-    })
-    .catch(err => {
-      console.error(err);
-      feedbackList.innerHTML = "<p>Error loading feedbacks</p>";
+      const div = document.createElement("div");
+      div.className = "feedback-item";
+      div.style.borderBottom = "1px solid #ccc";
+      div.style.padding = "8px 0";
+
+      div.innerHTML = `
+        <strong>Bus:</strong> ${fb.bus}<br>
+        <strong>Route:</strong> ${fb.route}<br>
+        <strong>Issue:</strong> ${fb.issue}<br>
+        <strong>Message:</strong> ${fb.message}<br>
+        <small>⏰ ${time}</small>
+      `;
+
+      feedbackList.appendChild(div);
     });
+  });
 }

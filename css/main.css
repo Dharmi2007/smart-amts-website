@@ -6,13 +6,20 @@ body {
 }
 
 /* Header */
-header {
-  background: #c4161c; /* red */
-  color: white;
-  padding: 18px;
+
+.app-header {
   text-align: center;
-  font-size: 22px;
-  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 20px;
+  background: #000000; /* black theme */
+  color: rgb(228, 26, 26);
+}
+
+.logo {
+  height: 60px;
+  width: auto;
 }
 
 /* Navigation Bar */

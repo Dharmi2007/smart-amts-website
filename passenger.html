@@ -6,11 +6,18 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 </head>
 <body>
-
-<nav class="navbar">
-  <h2>🚍 Smart AMTS</h2>
+  <header class="app-header">
+  <img src="images/logo.jpeg" alt="Smart AMTS Logo" class="logo">
+  <h2>Smart AMTS</h2>
   <button class="map-btn" onclick="toggleMap()">Live Map</button>
-</nav>
+</header>
+<div class="card">
+  <h3>Nearby Buses</h3>
+  <button onclick="getUserLocation()">Turn on Location</button>
+  <div id="distanceInfo"></div>
+</div>
+
+
 
 <div class="container">
   <div class="layout">
@@ -48,17 +55,31 @@
         <p>👤 Helpdesk Officer: Mr. R. Patel</p>
       </div>
 
-      <div class="card">
-        <h3>🗣 Passenger Feedback</h3>
-        <select id="feedbackText">
-          <option>Bus was overcrowded</option>
-          <option>Bus was late</option>
-          <option>Good service</option>
-        </select>
-        <button onclick="submitFeedback()">Submit Feedback</button>
-      </div>
+     <div class="card">
+  <h3>🗣 Passenger Feedback</h3>
 
-    </div>
+  <label>Bus Number</label>
+  <input id="feedbackBus"
+         placeholder="Enter bus number or select from list">
+
+  <label>Station</label>
+  <input id="feedbackStation"
+         placeholder="Enter station or route">
+
+  <label>Issue Type</label>
+  <select id="feedbackType">
+    <option>Bus was late</option>
+    <option>Bus was overcrowded</option>
+    <option>Good service</option>
+    <option>Driver behaviour issue</option>
+  </select>
+
+  <label>Message (optional)</label>
+  <textarea id="feedbackMessage" placeholder="Write more details..."></textarea>
+
+  <button onclick="submitFeedback()">Submit Feedback</button>
+</div>
+
 
     <!-- RIGHT -->
     <div class="right-panel hidden" id="mapSection">
@@ -71,6 +92,16 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="js/data.js"></script>
 <script src="js/passenger.js"></script>
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<!-- Firebase Config -->
+<script src="js/firebase.js"></script>
+
+<!-- Passenger Logic -->
+<script src="js/passenger.js"></script>
+
 
 </body>
 </html>
