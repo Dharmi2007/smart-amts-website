@@ -8,42 +8,79 @@
 
 <body>
 
-<!-- HEADER -->
+<!-- ================= HEADER ================= -->
 <header class="app-header">
   <img src="images/logo.jpeg" alt="Smart AMTS Logo" class="logo">
   <h2>Admin Dashboard</h2>
 </header>
+<!-- ================= AI ================= -->
 
-<!-- BUS COUNT -->
-<div class="card" id="busCount">
-  🚍 Loading running buses...
+<div class="card insight-card">
+  <h3>🧠 Smart Insights (AI Generated)</h3>
+  <ul id="aiInsights">
+    <li>Analyzing data...</li>
+  </ul>
 </div>
 
-<!-- PEAK CROWD -->
-<div class="card" id="crowdInfo">
-  🔥 Calculating peak crowd route...
-</div>
 
-<!-- CROWD ANALYTICS -->
-<div class="card">
-  <h3>📊 Crowd Analytics</h3>
-  <div id="busDetails"></div>
-</div>
-
-<!-- FEEDBACK SUMMARY -->
+<!-- ================= FEEDBACK SUMMARY ================= -->
 <div class="card feedback-summary" onclick="toggleFeedbacks()" style="cursor:pointer">
   👤 Total Feedbacks: <span id="feedbackCount">0</span>
   <p style="font-size:12px;color:#777;">Click to view feedbacks</p>
 </div>
-
-<!-- FEEDBACK LIST -->
+<!-- ================= FEEDBACK PANEL ================= -->
 <div id="feedbackSection" class="feedback-box" style="display:none;">
-  <h3>📋 User Reviews</h3>
+
+  <h3>📋 User Feedback</h3>
+
+  <!-- ===== Filters ===== -->
+  <div class="filters" style="margin-bottom:10px;">
+    <select id="filterBus" onchange="renderFeedbacks()">
+      <option value="">All Buses</option>
+    </select>
+
+    <select id="filterIssue" onchange="renderFeedbacks()">
+      <option value="">All Issues</option>
+    </select>
+
+    <input type="date" id="filterDate" onchange="renderFeedbacks()">
+
+    <button onclick="exportFeedbackCSV()">⬇ Export CSV</button>
+  </div>
+
+  <!-- ===== Analytics ===== -->
+  <div id="mostComplained" style="margin:10px 0;"></div>
+  <div id="busStats" style="margin:10px 0;"></div>
+
+  <!-- ===== Feedback List ===== -->
   <div id="feedbackList"></div>
 </div>
 
+
+<!-- ================= CROWD ANALYTICS SUMMARY ================= -->
+<div class="card" onclick="toggleCrowdAnalytics()" style="cursor:pointer">
+  📊 Crowd Analytics
+  <p style="font-size:12px;color:#777;">Click to view crowd insights</p>
+</div>
+
+<!-- ================= CROWD PANEL ================= -->
+<div id="crowdSection" class="feedback-box" style="display:none;">
+
+  <h3>🚍 Crowd Analytics (Real Feedback Data)</h3>
+
+  <div id="peakCrowdBus" style="margin:8px 0;"></div>
+  <div id="peakCrowdTime" style="margin:8px 0;"></div>
+
+  <h4 style="margin-top:12px;">Bus-wise Crowd Level</h4>
+  <div id="crowdBusList"></div>
+
+</div>
+
+
+<!-- ================= SCRIPTS ================= -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 <script src="js/firebase.js"></script>
 <script src="js/admin.js"></script>
 

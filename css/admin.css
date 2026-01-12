@@ -1,107 +1,162 @@
+/* ===============================
+   GLOBAL
+=============================== */
 body {
-  font-family: Arial, sans-serif;
-  background: #1c0101;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f4f6f9;
   padding: 20px;
-  color: rgb(76, 63, 63);
+  color: #000000;
 }
+
+/* ===============================
+   HEADER
+=============================== */
 .app-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 1px 2px;
-  background: #000000; /* black theme */
-  color: rgb(255, 255, 255);
+  padding: 12px 18px;
+  background: #000000;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
 }
 
 .logo {
-  height: 60px;
-  width: auto;
+  height: 55px;
 }
 
 h2 {
-  color: #f60707;
-  text-align: center;
-  margin-bottom: 30px;
+  color: #d32f2f;
+  margin: 0;
 }
 
+/* ===============================
+   CARDS
+=============================== */
 .card {
-  background: rgb(253, 247, 247);
-  color: #030101;
-  padding: 20px;
+  background: #ffffff;
+  padding: 18px;
   margin: 15px 0;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(255, 44, 44, 0.3);
-  font-size: 18px;
-  font-weight: bold;
-  border-left: 6px solid #ff2c2c;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  font-size: 16px;
+  font-weight: 600;
+  border-left: 5px solid #e53935;
+}
+.insight-card {
+  border-left: 5px solid #6f42c1;
+  background: #f8f9ff;
+}
+.insight-card li {
+  margin: 8px 0;
 }
 
+
+/* ===============================
+   FEEDBACK BOX
+=============================== */
 .feedback-box {
   margin: 20px auto;
-  width: 90%;
-  background: #111;
-  color: white;
+  width: 95%;
+  background: #ffffff;
+  color: #333;
   padding: 15px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px red;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
-.feedback-item {
-  background: #222;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-left: 5px solid red;
-  border-radius: 6px;
-}
-
-.analytics-card h3 {
-  margin-bottom: 15px;
-}
-
-.analytics-row {
+/* ===============================
+   FILTER BAR
+=============================== */
+.filters {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 12px;
 }
 
-.label {
-  width: 60px;
-  font-weight: 600;
+.filters select,
+.filters input,
+.filters button {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
 }
 
-.label.green { color: #00e676; }
-.label.yellow { color: #ffeb3b; }
-.label.red { color: #ff5252; }
-
-.bar {
-  flex: 1;
-  height: 14px;
-  background: #e72f2f;
-  border-radius: 10px;
-  overflow: hidden;
+.filters button {
+  background: #d32f2f;
+  color: white;
+  border: none;
+  cursor: pointer;
 }
 
-.fill {
-  height: 100%;
-  width: 0%;
-  transition: width 0.6s ease;
+.filters button:hover {
+  background: #b71c1c;
 }
 
-.fill.low {
-  background: linear-gradient(90deg, #00c853, #64dd17);
+/* ===============================
+   FEEDBACK ITEM
+=============================== */
+.feedback-item {
+  background: #f9f9f9;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border-left: 6px solid #e53935;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
-.fill.medium {
-  background: linear-gradient(90deg, #ffd600, #ffab00);
+.feedback-item button {
+  margin-top: 6px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  background: #4caf50;
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
 }
 
-.fill.high {
-  background: linear-gradient(90deg, #d50000, #ff1744);
+.feedback-item button:hover {
+  background: #388e3c;
 }
 
-.percent {
-  width: 40px;
-  text-align: right;
-  font-weight: 600;
+/* ===============================
+   STATUS COLORS
+=============================== */
+.feedback-item.resolved {
+  border-left-color: #4caf50;
+}
+
+/* ===============================
+   ANALYTICS TEXT
+=============================== */
+#mostComplained,
+#busStats {
+  background: #fff3e0;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+/* ===============================
+   CROWD ANALYTICS
+=============================== */
+.bus-card {
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-left: 5px solid #ff7043;
+}
+
+/* ===============================
+   RESPONSIVE
+=============================== */
+@media (max-width: 600px) {
+  .filters {
+    flex-direction: column;
+  }
 }
