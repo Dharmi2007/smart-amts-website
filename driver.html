@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Driver Live GPS Tracker</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+</head>
+<body>
+
+<h2>🚍 Smart AMTS – Driver GPS Tracker</h2>
+<p id="status">Waiting for location...</p>
+
+<script>
+
+  // 🔥 your Firebase config here
+  const firebaseConfig = {
+    apiKey: "YOUR_KEY",
+    authDomain: "YOUR_AUTH",
+    databaseURL: "YOUR_DB_URL",
+    projectId: "YOUR_PROJECT",
+  };
+
+  firebase.initializeApp(firebaseConfig);
+
+  const db = firebase.database();
+
+  // ⭐ function to send GPS to firebase
+  function sendLocation(lat, lng) {
+
+    firebase
+      .database()
+      .ref("buses/bus1")
+      .set({
+        latitude: lat,
+        longitude: lng,
+        updatedAt: Date.now()
+      });
+
+    document.getElementById("status").innerHTML =
+      "📡 Sending Live Location:<br>Lat: " + lat + "<br>Lng: " + lng;
+  }
+
+  // 🛰 get phone GPS continuously
+  if (navigator.geolocation) {
+
+    navigator.geolocation.watchPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+
+        sendLocation(lat, lng);
+      },
+      (err) => {
+        document.getElementById("status").innerHTML =
+          "❌ Location access denied";
+      },
+      {
+        enableHighAccuracy: true
+      }
+    );
+
+  } else {
+    document.getElementById("status").innerHTML =
+      "❌ GPS not supported";
+  }
+
+</script>
+
+</body>
+</html>

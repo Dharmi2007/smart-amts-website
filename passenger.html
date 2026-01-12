@@ -2,44 +2,35 @@
 <html lang="en">
 <head>
   <title>Passenger | Smart AMTS</title>
+
   <link rel="stylesheet" href="css/passenger.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 </head>
+
 <body>
-  <header class="app-header">
-  <img src="images/logo.jpeg" alt="Smart AMTS Logo" class="logo">
+
+<header class="app-header">
+  <img src="images/logo.jpeg" class="logo">
   <h2>Smart AMTS</h2>
   <button class="map-btn" onclick="toggleMap()">Live Map</button>
 </header>
-<div class="card">
-  <h3>Nearby Buses</h3>
-  <button onclick="getUserLocation()">Turn on Location</button>
-  <div id="distanceInfo"></div>
-</div>
-
-
 
 <div class="container">
-  <div class="layout">
+  <div class="layout" id="layoutContainer">
 
-    <!-- LEFT -->
-    <div class="left-panel">
+    <!-- LEFT PANEL -->
+    <div class="left-panel" id="infoSection">
 
       <div class="card">
         <h3>Plan Your Journey</h3>
-
         <div class="input-group">
-          <input id="from" placeholder="From location"
-            onkeyup="showSuggestions(this,'fromList')">
+          <input id="from" placeholder="From location" onkeyup="showSuggestions(this,'fromList')">
           <div class="suggestions" id="fromList"></div>
         </div>
-
         <div class="input-group">
-          <input id="to" placeholder="Destination"
-            onkeyup="showSuggestions(this,'toList')">
+          <input id="to" placeholder="Destination" onkeyup="showSuggestions(this,'toList')">
           <div class="suggestions" id="toList"></div>
         </div>
-
         <button onclick="findBus()">Find Best Bus</button>
       </div>
 
@@ -49,39 +40,39 @@
       </div>
 
       <div class="card">
+        <h3>Nearby Buses</h3>
+        <button onclick="getUserLocation()">Turn on Location</button>
+        <div id="distanceInfo"></div>
+      </div>
+
+      <div class="card">
         <h3>📞 Help & Support</h3>
         <p><b>AMTS Control Room</b></p>
         <p>📱 +91 98765 43210</p>
         <p>👤 Helpdesk Officer: Mr. R. Patel</p>
       </div>
 
-     <div class="card">
-  <h3>🗣 Passenger Feedback</h3>
+      <div class="card">
+        <h3>🗣 Passenger Feedback</h3>
+        <label>Bus Number</label>
+        <input id="feedbackBus" placeholder="Enter bus number">
+        <label>Station</label>
+        <input id="feedbackStation" placeholder="Enter station">
+        <label>Issue Type</label>
+        <select id="feedbackType">
+          <option>Bus was late</option>
+          <option>Bus was overcrowded</option>
+          <option>Good service</option>
+          <option>Driver behaviour issue</option>
+        </select>
+        <label>Message (optional)</label>
+        <textarea id="feedbackMessage" placeholder="Write more details..."></textarea>
+        <button onclick="submitFeedback()">Submit Feedback</button>
+      </div>
 
-  <label>Bus Number</label>
-  <input id="feedbackBus"
-         placeholder="Enter bus number or select from list">
+    </div>
 
-  <label>Station</label>
-  <input id="feedbackStation"
-         placeholder="Enter station or route">
-
-  <label>Issue Type</label>
-  <select id="feedbackType">
-    <option>Bus was late</option>
-    <option>Bus was overcrowded</option>
-    <option>Good service</option>
-    <option>Driver behaviour issue</option>
-  </select>
-
-  <label>Message (optional)</label>
-  <textarea id="feedbackMessage" placeholder="Write more details..."></textarea>
-
-  <button onclick="submitFeedback()">Submit Feedback</button>
-</div>
-
-
-    <!-- RIGHT -->
+    <!-- RIGHT PANEL -->
     <div class="right-panel hidden" id="mapSection">
       <div id="map"></div>
     </div>
@@ -91,20 +82,25 @@
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="js/data.js"></script>
-<script src="js/passenger.js"></script>
-<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-<!-- Firebase Config -->
-<script src="js/firebase.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCt8xps-QZ0phnP1cJgjA6nqhiNCGjbH8g",
+    authDomain: "smart-amts-d0ec8.firebaseapp.com",
+    databaseURL: "https://smart-amts-d0ec8-default-rtdb.firebaseio.com",
+    projectId: "smart-amts-d0ec8",
+    storageBucket: "smart-amts-d0ec8.firebasestorage.app",
+    messagingSenderId: "121822205622",
+    appId: "1:121822205622:web:193337ae3482b8602e3817",
+    measurementId: "G-83F1GE9M95"
+  };
+  firebase.initializeApp(firebaseConfig);
+  window.db = firebase.database();
+</script>
 
-<!-- Passenger Logic -->
 <script src="js/passenger.js"></script>
-
 
 </body>
 </html>
-
-
-

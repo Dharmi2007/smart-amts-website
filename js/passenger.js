@@ -1,200 +1,209 @@
-let map;
-let markers = [];
-let userMarker = null;
-let userLocation = null;
+// ================= GLOBALS =================
+var map;
+var markers = [];
+var userMarker = null;
+var userLocation = null;
+var buses = [];
+var database = window.db;
 
-let selectedBusNumber = "";
-let selectedStation = "";
+// ================= LOAD BUS DATA =================
+var busRef = database.ref("buses");
+busRef.on("value", function(snapshot) {
+    buses = [];
+    snapshot.forEach(function(childSnap){
+        var b = childSnap.val();
+        buses.push({
+            number: b.name,
+            from: b.from,
+            to: b.to,
+            crowdlevel: b.crowdLevel,
+            capacity: b.capacity,
+            lat: b.latitude,
+            lng: b.longitude,
+            status: b.status
+        });
+    });
+    console.log("Buses loaded:", buses);
+});
 
-/* ---------- AUTOCOMPLETE ---------- */
-function showSuggestions(input, listId) {
-  const value = input.value.toLowerCase();
-  const list = document.getElementById(listId);
-  list.innerHTML = "";
+// ================= AUTOCOMPLETE =================
+function showSuggestions(input, listId){
+    const value = input.value.toLowerCase();
+    const list = document.getElementById(listId);
+    list.innerHTML = '';
 
-  if (!value) return;
+    const locations = ['Nehrunagar','CG Road','Maninagar'];
 
-  locations.forEach(loc => {
-    if (loc.toLowerCase().includes(value)) {
-      const div = document.createElement("div");
-      div.innerText = loc;
-      div.onclick = () => {
-        input.value = loc;
-        list.innerHTML = "";
-      };
-      list.appendChild(div);
-    }
-  });
+    locations.forEach(loc => {
+        if(loc.toLowerCase().includes(value)){
+            const div = document.createElement('div');
+            div.innerText = loc;
+            div.onclick = () => {
+                input.value = loc;
+                list.innerHTML = '';
+            };
+            list.appendChild(div);
+        }
+    });
 }
 
-/* ---------- LOCATION FEATURE ---------- */
-function getUserLocation() {
-  if (!navigator.geolocation) {
-    alert("Location not supported");
-    return;
-  }
+// ================= USER LOCATION =================
+window.getUserLocation = function(){
+    if(!navigator.geolocation){
+        alert("Location not supported");
+        return;
+    }
 
-  navigator.geolocation.getCurrentPosition(
-    (position) => {
-      userLocation = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude
-      };
+    navigator.geolocation.getCurrentPosition(function(pos){
+        userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
 
-      document.getElementById("mapSection").classList.remove("hidden");
+        // ⭐ split layout ON
+        document.querySelector(".layout").classList.add("two-column");
+        document.getElementById("mapSection").classList.remove("hidden");
 
-      if (!map) {
-        map = L.map("map").setView([userLocation.lat, userLocation.lng], 14);
+        if(!map){
+            map = L.map("map").setView([userLocation.lat, userLocation.lng], 14);
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+        }
+
+        if(userMarker) map.removeLayer(userMarker);
+
+        userMarker = L.marker([userLocation.lat, userLocation.lng])
+            .addTo(map)
+            .bindPopup("📍 Your Location")
+            .openPopup();
+
+    }, function(){
+        alert("Location permission denied");
+    });
+};
+
+// ================= FIND BUS =================
+window.findBus = function(){
+    var fromVal = document.getElementById("from").value.trim().toLowerCase();
+    var toVal = document.getElementById("to").value.trim().toLowerCase();
+
+    var matched = buses.filter(function(bus){
+        return bus.status?.toLowerCase() === "running" &&
+               bus.from?.toLowerCase() === fromVal &&
+               bus.to?.toLowerCase() === toVal;
+    });
+
+    var html = "";
+    if(matched.length === 0){
+        html = "<p style='color:red'>No buses found</p>";
+    } else {
+        matched.forEach(function(bus){
+            html += "<div>" +
+                "<b>Bus:</b> " + bus.number + "<br>" +
+                "<b>From:</b> " + bus.from + "<br>" +
+                "<b>To:</b> " + bus.to + "<br>" +
+                "<b>Crowd:</b> " + bus.crowdlevel + "<br>" +
+                "<b>Capacity:</b> " + bus.capacity +
+                "</div><hr>";
+        });
+    }
+
+    document.getElementById("busList").innerHTML = html;
+    document.getElementById("busCard").classList.remove("hidden");
+
+    // 🔥 FIXED PART 🔥
+    document.getElementById("mapSection").classList.remove("hidden"); // show map
+    document.querySelector(".layout").classList.add("two-column");      // split layout
+
+    if(fromVal === "maninagar" && toVal === "cg road"){
+        showMap(matched, true);   // demo animation
+    } else {
+        showMap(matched, false);  // normal GPS
+    }
+};
+
+// ================= SHOW MAP =================
+window.showMap = function(list, demoMode){
+
+    // always unhide map
+    document.getElementById("mapSection").classList.remove("hidden");
+
+    // create map once
+    if(!map){
+        map = L.map("map").setView([23.0225, 72.5714], 12);
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
-      } else {
-        map.setView([userLocation.lat, userLocation.lng], 14);
-      }
-
-      if (userMarker) map.removeLayer(userMarker);
-
-      userMarker = L.marker([userLocation.lat, userLocation.lng])
-        .addTo(map)
-        .bindPopup("📍 Your Location")
-        .openPopup();
-    },
-    () => {
-      alert("Location permission denied");
     }
-  );
+
+    // clear old markers
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
+
+    // ---------- DEMO MODE (moving bus) ----------
+    if(demoMode){
+
+        list.forEach(function(bus){
+
+            var marker = L.marker([22.991, 72.603]).addTo(map)
+                .bindPopup("🚍 Demo Bus " + bus.number);
+
+            markers.push(marker);
+
+            const path = [
+                [22.991, 72.603], // Maninagar
+                [23.005, 72.598],
+                [23.015, 72.592],
+                [23.025, 72.586],
+                [23.030, 72.582]  // CG Road
+            ];
+
+            animateMarker(marker, path);
+        });
+
+        return;
+    }
+
+    // ---------- NORMAL MODE (REAL GPS) ----------
+    list.forEach(function(bus){
+        if(bus.lat && bus.lng){
+            var marker = L.marker([bus.lat, bus.lng]).addTo(map)
+                .bindPopup("🚍 Bus " + bus.number);
+            markers.push(marker);
+        }
+    });
+};
+
+// ================= MOVING BUS FUNCTION =================
+function animateMarker(marker, path){
+    let i = 0;
+    setInterval(function(){
+        if(i >= path.length) i = 0;
+        marker.setLatLng(path[i]);
+        i++;
+    }, 1500);
 }
 
-/* ---------- DISTANCE ---------- */
-function calculateDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
+// ================= FEEDBACK =================
+window.submitFeedback = function(){
+    var bus = document.getElementById("feedbackBus").value;
+    var station = document.getElementById("feedbackStation").value;
+    var issue = document.getElementById("feedbackType").value;
+    var message = document.getElementById("feedbackMessage").value;
 
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) *
-      Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    if(!bus || !station){
+        alert("Enter bus and station");
+        return;
+    }
 
-  return (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))).toFixed(2);
-}
-
-/* ---------- FIND BUS ---------- */
-function findBus() {
-  const fromVal = document.getElementById("from").value.trim();
-  const toVal = document.getElementById("to").value.trim();
-
-  const from = fromVal.toLowerCase();
-  const to = toVal.toLowerCase();
-
-  const matched = buses.filter(bus =>
-    bus.from.toLowerCase() === from &&
-    bus.to.toLowerCase() === to
-  );
-
-  let html = "";
-
-  if (matched.length === 0) {
-    html = "<p style='color:red'>No buses available for this route</p>";
-    selectedBusNumber = "";
-    selectedStation = "";
-  } else {
-    matched.forEach(bus => {
-      let distanceText = "";
-
-      if (userLocation) {
-        const dist = calculateDistance(
-          userLocation.lat,
-          userLocation.lng,
-          bus.lat,
-          bus.lng
-        );
-        distanceText = `<br><b>Distance:</b> ${dist} km from you`;
-      }
-
-      html += `
-        <div style="margin-bottom:12px; cursor:pointer"
-             onclick="selectBus('${bus.number}','${bus.from}','${bus.to}')">
-          <b>${bus.number}</b><br>
-          <b>Start:</b> ${bus.from}<br>
-          <b>Destination:</b> ${bus.to}<br>
-          <b>Via:</b> ${bus.via}<br>
-          <b>Crowd:</b> ${bus.crowd}
-          ${distanceText}
-        </div>
-        <hr>
-      `;
+    var refFB = database.ref("feedbacks");
+    refFB.push({
+        bus,
+        station,
+        issue,
+        message: message || "No message",
+        time: Date.now()
     });
 
-    // Passenger boards from "from" location → this is the station
-    selectedStation = fromVal;
-  }
+    alert("Feedback submitted 👍");
+};
 
-  document.getElementById("busList").innerHTML = html;
-  document.getElementById("busCard").classList.remove("hidden");
-
-  showMap(matched);
-}
-
-/* ---------- BUS SELECT ---------- */
-function selectBus(busNumber, from, to) {
-  const busInput = document.getElementById("feedbackBus");
-  const stationInput = document.getElementById("feedbackStation");
-
-  if (busInput) busInput.value = busNumber;
-  if (stationInput) stationInput.value = from + " → " + to;
-}
-/* ---------- MAP ---------- */
-function toggleMap() {
-  document.getElementById("mapSection").classList.toggle("hidden");
-}
-
-function showMap(busList) {
-  document.getElementById("mapSection").classList.remove("hidden");
-
-  if (!map) {
-    map = L.map("map").setView([23.0225, 72.5714], 13);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
-  }
-
-  markers.forEach(m => map.removeLayer(m));
-  markers = [];
-
-  busList.forEach(bus => {
-    const marker = L.marker([bus.lat, bus.lng])
-      .addTo(map)
-      .bindPopup(`Bus ${bus.number}`);
-    markers.push(marker);
-  });
-}
-
-/* ================= FEEDBACK SYSTEM (FIREBASE) ================= */
-
-function submitFeedback() {
-  const busInput = document.getElementById("feedbackBus");
-  const stationInput = document.getElementById("feedbackStation");
-  const typeInput = document.getElementById("feedbackType");
-  const msgInput = document.getElementById("feedbackMessage");
-
-  if (!busInput.value || !stationInput.value) {
-    alert("⚠️ Please enter Bus and Station");
-    return;
-  }
-
-  const feedback = {
-    bus: busInput.value.trim(),
-    station: stationInput.value.trim(),
-    issue: typeInput.value,
-    message: msgInput.value.trim() || "No message",
-    time: Date.now()
-  };
-
-  database.ref("feedbacks").push(feedback)
-    .then(() => {
-      alert("✅ Feedback submitted successfully!");
-      msgInput.value = "";
-    })
-    .catch(err => {
-      console.error("Firebase Error:", err);
-      alert("❌ Failed to submit feedback");
-    });
-}
+// ================= MAP TOGGLE =================
+window.toggleMap = function(){
+    document.querySelector(".layout").classList.add("two-column");
+    document.getElementById("mapSection").classList.toggle("hidden");
+};
