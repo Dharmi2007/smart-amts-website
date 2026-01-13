@@ -42,14 +42,7 @@
       <div class="card">
         <h3>Nearby Buses</h3>
         <button onclick="getUserLocation()">Turn on Location</button>
-        <div id="distanceInfo"></div>
-      </div>
-
-      <div class="card">
-        <h3>📞 Help & Support</h3>
-        <p><b>AMTS Control Room</b></p>
-        <p>📱 +91 98765 43210</p>
-        <p>👤 Helpdesk Officer: Mr. R. Patel</p>
+        <div id="distanceInfo" style="margin-top:10px;"></div>
       </div>
 
       <div class="card">
@@ -69,7 +62,23 @@
         <textarea id="feedbackMessage" placeholder="Write more details..."></textarea>
         <button onclick="submitFeedback()">Submit Feedback</button>
       </div>
+      <!-- ================= SOS / EMERGENCY (NOW LAST) ================= -->
+    <div class="card" id="sosCard">
+      <h3>🛑 SOS / Emergency</h3>
+      <label for="busSelect">Select Bus:</label>
+<select id="busSelect">
+    <option value="">--Choose Bus--</option>
+</select>
 
+<label for="alertType">Select Emergency Type:</label>
+<select id="alertType">
+    <option value="medical">Medical Emergency</option>
+    <option value="harassment">Harassment</option>
+    <option value="accident">Accident</option>
+</select>
+
+<button id="sosBtn">Send SOS Alert</button>
+    </div>
     </div>
 
     <!-- RIGHT PANEL -->

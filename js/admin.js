@@ -373,3 +373,91 @@ function formatHour(h) {
   const h12 = hour % 12 || 12;
   return `${h12}:00 ${ampm}`;
 }
+
+function updateBusLocation() {
+
+    const busId = document.getElementById("busSelect").value;
+    const lat = parseFloat(document.getElementById("latInput").value);
+    const lng = parseFloat(document.getElementById("lngInput").value);
+
+    firebase.database().ref("buses/" + busId).update({
+        latitude: lat,
+        longitude: lng,
+        lastUpdated: Date.now()
+    }).then(() => {
+        alert("Selected bus location updated successfully!");
+    });
+}
+
+
+firebase.database().ref("buses").on("value", function(snapshot){
+    const select = document.getElementById("busSelect");
+    select.innerHTML = "";
+
+    snapshot.forEach(child => {
+        const bus = child.val();
+        const option = document.createElement("option");
+
+        option.value = child.key;   // 🔥 REAL BUS ID
+        option.textContent = bus.name;  // AMTS 101, AMTS 102 etc.
+
+        select.appendChild(option);
+    });
+});
+
+// ================= ALERTS REAL-TIME =================
+// ================= ALERTS REAL-TIME =================
+const alertsRef = database.ref("alerts");
+
+// Listen for new alerts
+alertsRef.on("child_added", function(snapshot){
+    const a = snapshot.val();
+    displayAlert(snapshot.key, a);
+});
+
+function displayAlert(id, alert){
+    const list = document.getElementById("alertList"); // Make sure this exists in HTML
+    if(!list) return;
+
+    const div = document.createElement("div");
+    div.className = "alert-item";
+    div.style.borderLeft = "6px solid #e74c3c";
+    div.style.padding = "8px";
+    div.style.margin = "6px 0";
+    div.style.borderRadius = "6px";
+
+    div.innerHTML = `
+        <strong>Passenger ID:</strong> ${alert.passengerID}<br>
+        <strong>Bus ID:</strong> ${alert.busID || "N/A"}<br>
+        <strong>Type:</strong> ${alert.type}<br>
+        <strong>Location:</strong> Lat: ${alert.location.lat}, Lng: ${alert.location.lng}<br>
+        <small>⏰ ${new Date(alert.timestamp).toLocaleString()}</small><br>
+        ${
+          alert.status === "received"
+            ? `<button onclick="markAlertHandled('${id}')">✅ Mark as Handled</button>`
+            : ""
+        }
+    `;
+
+    list.prepend(div); // latest alert on top
+}
+
+// Toggle alerts section
+function toggleAlerts() {
+    const sec = document.getElementById("alertSection");
+    sec.style.display = sec.style.display === "none" ? "block" : "none";
+}
+
+// Mark alert as handled
+function markAlertHandled(id){
+    // 1. Update in Firebase
+    alertsRef.child(id).update({ status: "handled" });
+
+    // 2. Update the UI
+    const btn = document.querySelector(`button[onclick="markAlertHandled('${id}')"]`);
+    if(btn){
+        btn.parentElement.innerHTML += "<span style='color:green; font-weight:bold;'> ✅ Completed</span>";
+        btn.remove(); // remove the button
+    }
+}
+

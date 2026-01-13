@@ -13,6 +13,16 @@
   <img src="images/logo.jpeg" alt="Smart AMTS Logo" class="logo">
   <h2>Admin Dashboard</h2>
 </header>
+
+<h3>Update Bus Location</h3>
+
+<select id="busSelect"></select>
+
+<input id="latInput" placeholder="Enter new latitude">
+<input id="lngInput" placeholder="Enter new longitude">
+
+<button onclick="updateBusLocation()">Update Location</button>
+
 <!-- ================= AI ================= -->
 
 <div class="card insight-card">
@@ -74,6 +84,17 @@
   <h4 style="margin-top:12px;">Bus-wise Crowd Level</h4>
   <div id="crowdBusList"></div>
 
+</div>
+
+<!-- ================= SOS ALERTS ================= -->
+<div class="card" onclick="toggleAlerts()" style="cursor:pointer">
+  🚨 SOS / Emergency Alerts
+  <p style="font-size:12px;color:#777;">Click to view latest alerts</p>
+</div>
+
+<div id="alertSection" class="feedback-box" style="display:none;">
+  <h3>📡 Real-Time SOS Alerts</h3>
+  <div id="alertList"></div>
 </div>
 
 

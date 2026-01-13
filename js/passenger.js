@@ -5,9 +5,74 @@ var userMarker = null;
 var userLocation = null;
 var buses = [];
 var database = window.db;
+window.db = firebase.database();
+var busMarkers = {};
+var busSelect = document.getElementById("busSelect");
+
+// ================= SOS BUTTON =================
+const sosBtn = document.getElementById("sosBtn");
+const alertTypeSelect = document.getElementById("alertType");
+
+sosBtn.addEventListener("click", function(){
+
+    if(!userLocation){
+        alert("Turn on location first!");
+        return;
+    }
+
+    const type = alertTypeSelect.value;
+    const selectedBus = busSelect.value;
+
+    if(!selectedBus){
+        alert("Please select a bus for SOS alert!");
+        return;
+    }
+
+    // Assign priority
+    let priority = "low";
+    if(type === "accident" || type === "medical") priority = "high";
+    else if(type === "harassment") priority = "medium";
+
+    // Prepare alert object
+    const alertData = {
+        passengerID: "passenger_001", // Replace with dynamic ID if login exists
+        busID: selectedBus,           // AMTS number selected
+        type: type,
+        location: { 
+            lat: userLocation.lat, 
+            lng: userLocation.lng 
+        },
+        status: "received",
+        timestamp: Date.now()
+    };
+
+    // Push to Firebase under "alerts"
+    database.ref("alerts").push(alertData)
+        .then(() => alert("🚨 SOS alert sent successfully!"))
+        .catch(err => {
+            console.error(err);
+            alert("Failed to send alert!");
+        });
+});
+
+// ================= DISTANCE CALCULATION =================
+function getDistanceKm(lat1, lon1, lat2, lon2) {
+    let R = 6371;
+    let dLat = (lat2 - lat1) * Math.PI/180;
+    let dLon = (lon2 - lon1) * Math.PI/180;
+
+    let a =
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) *
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+
+    let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+}
 
 // ================= LOAD BUS DATA =================
 var busRef = database.ref("buses");
+
 busRef.on("value", function(snapshot) {
     buses = [];
     snapshot.forEach(function(childSnap){
@@ -23,8 +88,33 @@ busRef.on("value", function(snapshot) {
             status: b.status
         });
     });
-    console.log("Buses loaded:", buses);
+    populateBusDropdown();
 });
+
+// Child changed for live marker update
+busRef.on("child_changed", function(snapshot){
+    var b = snapshot.val();
+    var id = snapshot.key;
+
+    if(busMarkers[id]){
+        busMarkers[id].setLatLng([b.latitude, b.longitude]);
+        console.log("Marker updated:", id);
+        return;
+    }
+});
+
+// ================= POPULATE BUS DROPDOWN =================
+function populateBusDropdown(){
+    busSelect.innerHTML = '<option value="">--Choose Bus--</option>';
+    buses.forEach(bus => {
+        if(bus.status?.toLowerCase() === "running"){
+            const option = document.createElement("option");
+            option.value = bus.number;
+            option.text = `${bus.number} (${bus.from} → ${bus.to})`;
+            busSelect.appendChild(option);
+        }
+    });
+}
 
 // ================= AUTOCOMPLETE =================
 function showSuggestions(input, listId){
@@ -57,7 +147,6 @@ window.getUserLocation = function(){
     navigator.geolocation.getCurrentPosition(function(pos){
         userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
 
-        // ⭐ split layout ON
         document.querySelector(".layout").classList.add("two-column");
         document.getElementById("mapSection").classList.remove("hidden");
 
@@ -107,66 +196,85 @@ window.findBus = function(){
     document.getElementById("busList").innerHTML = html;
     document.getElementById("busCard").classList.remove("hidden");
 
-    // 🔥 FIXED PART 🔥
-    document.getElementById("mapSection").classList.remove("hidden"); // show map
-    document.querySelector(".layout").classList.add("two-column");      // split layout
+    document.getElementById("mapSection").classList.remove("hidden");
+    document.querySelector(".layout").classList.add("two-column");
 
     if(fromVal === "maninagar" && toVal === "cg road"){
-        showMap(matched, true);   // demo animation
+        showMap(matched, true);
     } else {
-        showMap(matched, false);  // normal GPS
+        showMap(matched, false);
     }
 };
 
 // ================= SHOW MAP =================
 window.showMap = function(list, demoMode){
 
-    // always unhide map
     document.getElementById("mapSection").classList.remove("hidden");
 
-    // create map once
     if(!map){
         map = L.map("map").setView([23.0225, 72.5714], 12);
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
     }
 
-    // clear old markers
     markers.forEach(m => map.removeLayer(m));
     markers = [];
 
-    // ---------- DEMO MODE (moving bus) ----------
     if(demoMode){
-
         list.forEach(function(bus){
-
             var marker = L.marker([22.991, 72.603]).addTo(map)
                 .bindPopup("🚍 Demo Bus " + bus.number);
-
             markers.push(marker);
 
             const path = [
-                [22.991, 72.603], // Maninagar
+                [22.991, 72.603],
                 [23.005, 72.598],
                 [23.015, 72.592],
                 [23.025, 72.586],
-                [23.030, 72.582]  // CG Road
+                [23.030, 72.582]
             ];
-
             animateMarker(marker, path);
         });
-
         return;
     }
 
-    // ---------- NORMAL MODE (REAL GPS) ----------
     list.forEach(function(bus){
         if(bus.lat && bus.lng){
             var marker = L.marker([bus.lat, bus.lng]).addTo(map)
                 .bindPopup("🚍 Bus " + bus.number);
             markers.push(marker);
+            busMarkers[bus.number] = marker;
         }
     });
 };
+
+// ================= REAL-TIME DISTANCE ONLY =================
+function updateLiveDistance(){
+
+    if (!userLocation || buses.length === 0) return;
+
+    let fromVal = document.getElementById("from").value.trim().toLowerCase();
+    let toVal   = document.getElementById("to").value.trim().toLowerCase();
+
+    let bus = buses.find(b =>
+        b.from?.toLowerCase() === fromVal &&
+        b.to?.toLowerCase() === toVal &&
+        b.status?.toLowerCase() === "running"
+    );
+
+    if(!bus || !bus.lat || !bus.lng){
+        document.getElementById("distanceInfo").innerHTML =
+            "<p>No live location available for this bus</p>";
+        return;
+    }
+
+    let dist = getDistanceKm(
+        userLocation.lat, userLocation.lng,
+        bus.lat, bus.lng
+    );
+
+    document.getElementById("distanceInfo").innerHTML =
+        `<b>📍 Distance to bus:</b> ${dist.toFixed(2)} km`;
+}
 
 // ================= MOVING BUS FUNCTION =================
 function animateMarker(marker, path){
@@ -207,3 +315,8 @@ window.toggleMap = function(){
     document.querySelector(".layout").classList.add("two-column");
     document.getElementById("mapSection").classList.toggle("hidden");
 };
+
+// ================= AUTO REFRESH EVERY 5 SEC =================
+setInterval(() => {
+    updateLiveDistance();
+}, 5000);
