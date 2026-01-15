@@ -1,49 +1,59 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <title>Smart AMTS</title>
+
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 </head>
 
 <body>
-  <header class="app-header">
-  <img src="images/logo.jpeg" alt="Smart AMTS Logo" class="logo">
-  <h1>Smart AMTS</h1>
-</header>
 
 
+<!-- ================= HERO SECTION ================= -->
+<section class="hero">
+  <div class="hero-content">
 
-<nav>
-  <a href="index.html">Live Map</a>
-  <a href="passenger.html">Passenger</a>
-  <a href="admin.html">Admin</a>
-</nav>
+    <div class="hero-title">
+      <img src="images/logo.jpeg" alt="logo">
+      <h1>Smart AMTS</h1>
+    </div>
 
+    <p class="subtitle">
+      Real-Time Bus Tracking & Passenger Safety System
+    </p>
+
+    <div class="feature-tags">
+      <span>🚌 Live Bus Tracking</span>
+      <span>📊 Crowd Monitoring</span>
+      <span>🚨 SOS Emergency</span>
+      <span>📍 GPS Ready</span>
+    </div>
+
+    <div class="hero-buttons">
+      <a href="#map" class="btn primary">View Live Map</a>
+      <a href="passenger.html" class="btn secondary">Passenger</a>
+      <a href="admin.html" class="btn secondary">Admin</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ================= MAP ================= -->
 <div id="map"></div>
 
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-<!-- Firebase config (NOTICE PATH) -->
 <script src="js/firebase.js"></script>
 
-<!-- Leaflet JS -->
+<!-- Leaflet -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-<!-- Your JS files -->
 <script src="js/data.js"></script>
 <script src="js/map.js"></script>
 
 </body>
 </html>
-
-
-
-
-
-
-

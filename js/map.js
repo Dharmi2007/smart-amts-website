@@ -9,35 +9,34 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap"
 }).addTo(map);
 
-/* ============================
-   BUS MARKER
-============================ */
+const busMarkers = {};
 
-let busMarker = L.marker([23.0225, 72.5714]).addTo(map);
+firebase.database().ref("buses").on("value", (snapshot) => {
 
-/* ============================
-   FIREBASE LIVE LOCATION LISTENER
-============================ */
+  snapshot.forEach((childSnap) => {
 
-firebase.database().ref("buses/bus1").on("value", (snapshot) => {
+    const busId = childSnap.key;
+    const data = childSnap.val();
 
-  const data = snapshot.val();
-  if (!data) return;
+    if (!data || !data.latitude || !data.longitude) return;
 
-  const lat = data.latitude;
-  const lng = data.longitude;
+    const lat = Number(data.latitude);
+    const lng = Number(data.longitude);
 
-  // update marker position
-  busMarker.setLatLng([lat, lng]);
+    if (!busMarkers[busId]) {
 
-  // center map on bus
-  map.setView([lat, lng], 15);
+      busMarkers[busId] = L.marker([lat, lng]).addTo(map)
+        .bindPopup(`
+          <b>${data.name || busId}</b><br>
+          Status: ${data.status || "Unknown"}
+        `);
 
-  // popup data
-  busMarker.bindPopup(`
-    <b>Live Bus</b><br>
-    Latitude: ${lat.toFixed(4)}<br>
-    Longitude: ${lng.toFixed(4)}<br>
-    Status: ${data.status || "Running"}
-  `).openPopup();
+    } else {
+      busMarkers[busId].setLatLng([lat, lng]);
+    }
+
+  });
+
 });
+
+
