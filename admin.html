@@ -14,6 +14,7 @@
   <h2>Admin Dashboard</h2>
 </header>
 
+<!-- ================= BUS LOCATION UPDATE ================= -->
 <h3>Update Bus Location</h3>
 
 <select id="busSelect"></select>
@@ -23,8 +24,7 @@
 
 <button onclick="updateBusLocation()">Update Location</button>
 
-<!-- ================= AI ================= -->
-
+<!-- ================= AI INSIGHTS ================= -->
 <div class="card insight-card">
   <h3>🧠 Smart Insights (AI Generated)</h3>
   <ul id="aiInsights">
@@ -32,18 +32,16 @@
   </ul>
 </div>
 
-
 <!-- ================= FEEDBACK SUMMARY ================= -->
 <div class="card feedback-summary" onclick="toggleFeedbacks()" style="cursor:pointer">
   👤 Total Feedbacks: <span id="feedbackCount">0</span>
   <p style="font-size:12px;color:#777;">Click to view feedbacks</p>
 </div>
+
 <!-- ================= FEEDBACK PANEL ================= -->
 <div id="feedbackSection" class="feedback-box" style="display:none;">
-
   <h3>📋 User Feedback</h3>
 
-  <!-- ===== Filters ===== -->
   <div class="filters" style="margin-bottom:10px;">
     <select id="filterBus" onchange="renderFeedbacks()">
       <option value="">All Buses</option>
@@ -58,31 +56,45 @@
     <button onclick="exportFeedbackCSV()">⬇ Export CSV</button>
   </div>
 
-  <!-- ===== Analytics ===== -->
   <div id="mostComplained" style="margin:10px 0;"></div>
   <div id="busStats" style="margin:10px 0;"></div>
 
-  <!-- ===== Feedback List ===== -->
   <div id="feedbackList"></div>
 </div>
-
 
 <!-- ================= CROWD ANALYTICS SUMMARY ================= -->
 <div class="card" onclick="toggleCrowdAnalytics()" style="cursor:pointer">
   📊 Crowd Analytics
-  <p style="font-size:12px;color:#777;">Click to view crowd insights</p>
+  <p style="font-size:12px;color:#777;">
+    Click to view crowd & demand insights
+  </p>
 </div>
 
-<!-- ================= CROWD PANEL ================= -->
+<!-- ================= CROWD ANALYTICS PANEL ================= -->
 <div id="crowdSection" class="feedback-box" style="display:none;">
 
-  <h3>🚍 Crowd Analytics (Real Feedback Data)</h3>
+  <h3>🚍 Crowd Analytics</h3>
 
+  <!-- Feedback-based crowd -->
   <div id="peakCrowdBus" style="margin:8px 0;"></div>
   <div id="peakCrowdTime" style="margin:8px 0;"></div>
 
-  <h4 style="margin-top:12px;">Bus-wise Crowd Level</h4>
+  <h4 style="margin-top:12px;">Bus-wise Crowd Level (Feedback)</h4>
   <div id="crowdBusList"></div>
+
+  <!-- ================= NEW: DEMAND INSIGHTS ================= -->
+  <hr style="margin:16px 0;">
+
+  <h4>📈 Demand-Based Crowd Insights (Trip Registration)</h4>
+  <p style="font-size:12px;color:#777;">
+    Based on passenger trip registrations (no payment data)
+  </p>
+
+  <div id="highDemandBuses" style="margin:8px 0;"></div>
+  <div id="peakDemandTime" style="margin:8px 0;"></div>
+
+  <h4 style="margin-top:10px;">Estimated Passenger Demand</h4>
+  <div id="demandBusList"></div>
 
 </div>
 
@@ -96,7 +108,6 @@
   <h3>📡 Real-Time SOS Alerts</h3>
   <div id="alertList"></div>
 </div>
-
 
 <!-- ================= SCRIPTS ================= -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
