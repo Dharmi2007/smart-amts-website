@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart AMTS Ticket</title>
+  <link rel="stylesheet" href="css/ticket.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<header class="ticket-header">
+  <img src="images/logo.jpeg" alt="Smart AMTS" class="logo">
+  <h1>Smart AMTS Ticket</h1>
+</header>
+
+<div class="ticket-container">
+  <div class="ticket-card" id="ticketCard">
+    <h2 class="ticket-title">🎫 Your Journey Ticket</h2>
+
+    <div class="ticket-row">
+      <span class="label">Bus No:</span>
+      <span id="busNo">-</span>
+    </div>
+
+    <div class="ticket-row">
+      <span class="label">Route:</span>
+      <span id="route">-</span>
+    </div>
+
+    <div class="ticket-row">
+      <span class="label">Date:</span>
+      <span id="journeyDate">-</span>
+    </div>
+
+    <div class="ticket-row">
+      <span class="label">Time:</span>
+      <span id="journeyTime">-</span>
+    </div>
+
+    <div class="ticket-row">
+      <span class="label">Passenger:</span>
+      <span id="passengerName">-</span>
+    </div>
+
+    <div class="ticket-row">
+      <span class="label">Seats:</span>
+      <span id="seats">-</span>
+    </div>
+
+    <div class="ticket-row">
+      <span class="label">MRP:</span>
+      <span id="fare">-</span>
+    </div>
+
+    <div class="ticket-row">
+      <span class="label">Status:</span>
+      <span id="status">-</span>
+    </div>
+
+  </div>
+
+  <button class="print-btn" onclick="window.print()">Print Ticket 🖨️</button>
+</div>
+
+<script src="js/ticket.js"></script>
+</body>
+</html>

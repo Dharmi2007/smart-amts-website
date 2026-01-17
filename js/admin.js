@@ -1,16 +1,27 @@
-// ===============================
-// ADMIN DASHBOARD – AI-ENHANCED REAL DATA VERSION
-// ===============================
 
 // ---------- FIREBASE ----------
 const feedbacksRef = database.ref("feedbacks");
 
+// ---------- TRIP REGISTRATIONS ----------
+const tripsRef = database.ref("tripRegistrations");
+let tripCache = {};
+
+tripsRef.on("value", snap => {
+  tripCache = snap.val() || {};
+
+  // Crowd analytics refresh if open
+  if (document.getElementById("crowdSection")?.style.display === "block") {
+    renderCrowdAnalytics();
+  }
+
+  generateSmartInsights(); // update AI insights with trip data
+});
+
 // ---------- GLOBAL ----------
 let feedbackCache = {};
 
-// =====================================================
 // 🔥 LIVE FEEDBACK LISTENER
-// =====================================================
+
 feedbacksRef.on("value", snap => {
   feedbackCache = snap.val() || {};
 
@@ -50,7 +61,10 @@ function toggleCrowdAnalytics() {
 // NORMALIZE FEEDBACK
 // =====================================================
 function normalizeFeedback(fb) {
-  const bus = fb.bus || fb.busId || fb.busName || "Unknown Bus";
+  // Standardize bus name
+  const busRaw = fb.bus || fb.busId || fb.busName || "Unknown Bus";
+  const bus = busRaw.toUpperCase().trim();
+
   const issue = fb.issue || fb.problem || fb.type || "General";
   const message = fb.message || fb.msg || fb.feedback || "";
 
@@ -70,6 +84,19 @@ function normalizeFeedback(fb) {
   const status = fb.status || "open";
 
   return { bus, issue, message, station, timeObj, status };
+}
+
+// =====================================================
+// NORMALIZE TRIP REGISTRATION
+// =====================================================
+function normalizeTrip(raw) {
+  return {
+    bus: raw.busNumber,              // 🔥 FIX HERE
+    passengers: Number(raw.passengers) || 1,
+    from: raw.from || "",
+    to: raw.to || "",
+    timeObj: raw.timestamp ? new Date(raw.timestamp) : null
+  };
 }
 
 // =====================================================
@@ -214,42 +241,52 @@ function exportFeedbackCSV() {
   a.download = "feedback.csv";
   a.click();
 }
-
-// =====================================================
-// ================= CROWD ANALYTICS ====================
-// =====================================================
+//===============crowd ANALYTICS PANEL =====================
 function renderCrowdAnalytics() {
+
   const listEl = document.getElementById("crowdBusList");
   const peakBusEl = document.getElementById("peakCrowdBus");
   const peakTimeEl = document.getElementById("peakCrowdTime");
+  const demandEl = document.getElementById("demandBusList");
 
-  if (!listEl || !peakBusEl || !peakTimeEl) return;
+  if (!listEl || !peakBusEl || !peakTimeEl || !demandEl) return;
 
   listEl.innerHTML = "";
+  demandEl.innerHTML = "";
 
-  const crowdKeywords = ["crowd", "crowded", "rush", "packed", "full", "standing"];
-  const busCrowdCount = {};
-  const hourCrowdCount = {};
+  // =========================
+  // 1️⃣ FEEDBACK → COMPLAINTS
+  // =========================
+  const busComplaintCount = {};
+  const hourComplaintCount = {};
+  const crowdWords = ["crowd","crowded","rush","packed","full","standing"];
 
   Object.values(feedbackCache).forEach(raw => {
     const fb = normalizeFeedback(raw);
-    const text = (fb.issue + " " + fb.message).toLowerCase();
+    if (!fb.bus) return;
 
-    if (!crowdKeywords.some(w => text.includes(w))) return;
+    const bus = fb.bus.trim().toUpperCase();
+    if (bus === "" || bus === "UNKNOWN") return;
 
-    busCrowdCount[fb.bus] = (busCrowdCount[fb.bus] || 0) + 1;
+    const text = ((fb.issue || "") + " " + (fb.message || "")).toLowerCase();
+    if (!crowdWords.some(w => text.includes(w))) return;
+
+    // ✅ count complaint
+    busComplaintCount[bus] = (busComplaintCount[bus] || 0) + 1;
 
     if (fb.timeObj) {
-      const hour = fb.timeObj.getHours();
-      hourCrowdCount[hour] = (hourCrowdCount[hour] || 0) + 1;
+      const h = fb.timeObj.getHours();
+      hourComplaintCount[h] = (hourComplaintCount[h] || 0) + 1;
     }
   });
 
-  let maxBus = "", maxBusCount = 0;
-  Object.keys(busCrowdCount).forEach(bus => {
-    const c = busCrowdCount[bus];
-    if (c > maxBusCount) {
-      maxBusCount = c;
+  // Render bus-wise complaints
+  let maxBus = "", maxCount = 0;
+
+  Object.keys(busComplaintCount).forEach(bus => {
+    const c = busComplaintCount[bus];
+    if (c > maxCount) {
+      maxCount = c;
       maxBus = bus;
     }
 
@@ -272,21 +309,44 @@ function renderCrowdAnalytics() {
   });
 
   peakBusEl.innerHTML = maxBus
-    ? `🔥 <b>Most Crowded Bus:</b> ${maxBus} (${maxBusCount} complaints)`
+    ? `🔥 <b>Most Crowded Bus:</b> ${maxBus} (${maxCount} complaints)`
     : "🔥 <b>Most Crowded Bus:</b> No data";
 
-  let peakHour = null, maxHourCount = 0;
-  Object.keys(hourCrowdCount).forEach(h => {
-    if (hourCrowdCount[h] > maxHourCount) {
-      maxHourCount = hourCrowdCount[h];
+  let peakHour = null, peakCount = 0;
+  Object.keys(hourComplaintCount).forEach(h => {
+    if (hourComplaintCount[h] > peakCount) {
+      peakCount = hourComplaintCount[h];
       peakHour = h;
     }
   });
 
-  peakTimeEl.innerHTML =
-    peakHour !== null
-      ? `⏰ <b>Peak Crowd Time:</b> ${formatHour(peakHour)} (${maxHourCount} reports)`
-      : "⏰ <b>Peak Crowd Time:</b> No data";
+  peakTimeEl.innerHTML = peakHour !== null
+    ? `⏰ <b>Peak Crowd Time:</b> ${formatHour(peakHour)} (${peakCount} reports)`
+    : "⏰ <b>Peak Crowd Time:</b> No data";
+
+  // =========================
+  // 2️⃣ TRIPS → DEMAND ONLY
+  // =========================
+  const demandMap = {};
+
+  Object.values(tripCache).forEach(raw => {
+    const t = normalizeTrip(raw);
+    if (!t.bus) return;
+
+    demandMap[t.bus] =
+      (demandMap[t.bus] || 0) + Number(t.passengers || 0);
+  });
+
+  if (Object.keys(demandMap).length === 0) {
+    demandEl.innerHTML = "<i>No trip registrations yet</i>";
+    return;
+  }
+
+  Object.keys(demandMap).forEach(bus => {
+    const div = document.createElement("div");
+    div.innerHTML = `<strong>${bus}:</strong> ${demandMap[bus]} passengers`;
+    demandEl.appendChild(div);
+  });
 }
 
 // =====================================================
@@ -299,15 +359,19 @@ function generateSmartInsights() {
   const hourMap = {};
   let unknownBus = 0;
 
+  // ---------- Process feedback ----------
   Object.values(feedbackCache).forEach(raw => {
     const fb = normalizeFeedback(raw);
 
+    // Count unknown bus feedback
     if (fb.bus === "Unknown Bus") unknownBus++;
 
+    // Frequent delays
     if (fb.issue.toLowerCase().includes("late")) {
       delayMap[fb.bus] = (delayMap[fb.bus] || 0) + 1;
     }
 
+    // Crowd feedback
     const text = (fb.issue + " " + fb.message).toLowerCase();
     if (["crowd", "crowded", "packed", "rush", "standing"].some(w => text.includes(w))) {
       crowdMap[fb.bus] = (crowdMap[fb.bus] || 0) + 1;
@@ -318,6 +382,7 @@ function generateSmartInsights() {
     }
   });
 
+  // ---------- Generate insights ----------
   Object.keys(delayMap).forEach(bus => {
     if (delayMap[bus] >= 2) {
       insights.push(`🚍 ${bus} shows frequent delays. Review scheduling during peak hours.`);
@@ -346,13 +411,53 @@ function generateSmartInsights() {
     insights.push(`⚠️ ${unknownBus} feedback entries missing bus ID. Improve data validation.`);
   }
 
-  if (!insights.length) {
-    insights.push("✅ Operations are running smoothly with no critical alerts.");
+  // ---------- LIVE CROWD PREDICTION (next hour) ----------
+  const nextHour = (new Date().getHours() + 1) % 24; // wrap around 24
+  let predictedCrowd = 0;
+
+  // Add next hour trips
+  Object.values(tripCache).forEach(raw => {
+    const t = normalizeTrip(raw);
+    if (t.timeObj && t.timeObj.getHours() === nextHour) {
+      predictedCrowd += t.passengers;
+    }
+  });
+
+  // Add next hour crowd feedback
+  // ---------- Include trips + feedback in crowdMap ----------
+Object.values(tripCache).forEach(raw => {
+    const t = normalizeTrip(raw);
+    crowdMap[t.bus] = (crowdMap[t.bus] || 0) + t.passengers;
+
+    if(t.timeObj){
+        const h = t.timeObj.getHours();
+        hourMap[h] = (hourMap[h] || 0) + t.passengers;
+    }
+});
+
+Object.values(feedbackCache).forEach(raw => {
+    const fb = normalizeFeedback(raw);
+    const text = (fb.issue + " " + fb.message).toLowerCase();
+    if(["crowd","crowded","rush","packed","full","standing"].some(w=>text.includes(w))){
+        crowdMap[fb.bus] = (crowdMap[fb.bus] || 0) + 1;
+        if(fb.timeObj){
+            const h = fb.timeObj.getHours();
+            hourMap[h] = (hourMap[h] || 0) + 1;
+        }
+    }
+});
+
+  if (predictedCrowd > 0) {
+    insights.push(`🔮 Predicted crowd next hour (${formatHour(nextHour)}): ${predictedCrowd} passengers/reports`);
   }
 
+  // ---------- Render insights ----------
   renderSmartInsights(insights);
 }
 
+// =====================================================
+// Render insights to the panel
+// =====================================================
 function renderSmartInsights(insights) {
   const el = document.getElementById("aiInsights");
   if (!el) return;
@@ -405,7 +510,6 @@ firebase.database().ref("buses").on("value", function(snapshot){
     });
 });
 
-// ================= ALERTS REAL-TIME =================
 // ================= ALERTS REAL-TIME =================
 const alertsRef = database.ref("alerts");
 

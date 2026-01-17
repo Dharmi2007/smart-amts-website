@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Payment | Smart AMTS</title>
+<link rel="stylesheet" href="css/payment.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="logo-title">
+    <img src="images/logo.jpeg" class="logo">
+    <span class="title">Smart AMTS</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <h2>Payment & Passenger Details</h2>
+
+  <!-- ======= SUMMARY CARD ======= -->
+  <div class="summary-card" id="summaryCard">
+    <!-- Filled dynamically by JS -->
+  </div>
+
+  <!-- ======= PASSENGER INFO ======= -->
+  <div class="card">
+    <label>Full Name</label>
+    <input type="text" id="passengerName" placeholder="Enter your name">
+
+    <label>Phone</label>
+    <input type="tel" id="passengerPhone" placeholder="Enter your phone">
+
+    <label>Payment Method</label>
+    <select id="paymentMethod">
+      <option value="card">Card</option>
+      <option value="upi">UPI</option>
+    </select>
+
+    <!-- Dynamic Payment Fields -->
+    <div id="paymentFields"></div>
+
+    <button id="payBtn">Pay & Confirm</button>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="js/payment.js"></script>
+
+</body>
+</html>

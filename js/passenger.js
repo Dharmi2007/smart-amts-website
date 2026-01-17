@@ -286,6 +286,43 @@ function animateMarker(marker, path){
     }, 1500);
 }
 
+// ================= TRIP REGISTRATION (DEMAND INSIGHT) =================
+window.submitTravelIntent = function () {
+
+    const busNumber = document.getElementById("intentBus").value.trim();
+    const from = document.getElementById("intentFrom").value.trim();
+    const to = document.getElementById("intentTo").value.trim();
+    const passengers = document.getElementById("intentPassengers").value;
+
+    if (!busNumber || !from || !to || !passengers) {
+        alert("Please fill all trip details");
+        return;
+    }
+
+    const tripData = {
+        busNumber: busNumber,
+        from: from,
+        to: to,
+        passengers: Number(passengers),
+        timestamp: Date.now()
+    };
+
+    database.ref("tripRegistrations").push(tripData)
+        .then(() => {
+            alert("✅ Trip registered successfully (for demand analysis)");
+
+            // Optional: clear form
+            document.getElementById("intentBus").value = "";
+            document.getElementById("intentFrom").value = "";
+            document.getElementById("intentTo").value = "";
+            document.getElementById("intentPassengers").value = 1;
+        })
+        .catch(error => {
+            console.error(error);
+            alert("❌ Failed to register trip");
+        });
+};
+
 // ================= FEEDBACK =================
 window.submitFeedback = function(){
     var bus = document.getElementById("feedbackBus").value;
@@ -310,13 +347,43 @@ window.submitFeedback = function(){
     alert("Feedback submitted 👍");
 };
 
-// ================= MAP TOGGLE =================
-window.toggleMap = function(){
+// ================= SHOW MAP SECTION (REPLACE TOGGLE) =================
+window.showMapSection = function(){
     document.querySelector(".layout").classList.add("two-column");
-    document.getElementById("mapSection").classList.toggle("hidden");
+    document.getElementById("mapSection").classList.remove("hidden"); // always visible
 };
+
 
 // ================= AUTO REFRESH EVERY 5 SEC =================
 setInterval(() => {
     updateLiveDistance();
-}, 5000);
+}, 5000); 
+
+function registerTripAndProceed() {
+    const bus = document.getElementById('intentBus').value;
+    const from = document.getElementById('intentFrom').value;
+    const to = document.getElementById('intentTo').value;
+    const passengers = document.getElementById('intentPassengers').value;
+    const passengerName = document.getElementById('intentPassengerName').value || "Passenger";
+
+    if(!from || !to) { 
+        alert("Please fill all locations"); 
+        return; 
+    }
+
+    const tripRef = db.ref('trips').push();
+    const tripData = { bus, from, to, passengers, passengerName, timestamp: Date.now() };
+
+    tripRef.set(tripData).then(() => {
+        localStorage.setItem('busNo', bus);
+        localStorage.setItem('from', from);
+        localStorage.setItem('to', to);
+        localStorage.setItem('passengerName', passengerName);
+        localStorage.setItem('passengers', passengers);
+
+        window.location.href = 'payment.html';
+    }).catch(err => {
+        console.error(err);
+        alert("Error saving trip, try again");
+    });
+}

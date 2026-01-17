@@ -1,0 +1,81 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f5f5;
+    margin: 0;
+    padding: 0;
+}
+
+.ticket-header {
+    background: #6a0b0b;
+    color: #fff;
+    padding: 15px 0;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.ticket-header .logo {
+    height: 50px;
+    width: auto;
+}
+
+.ticket-container {
+    max-width: 450px;
+    margin: 30px auto;
+    padding: 0 15px;
+}
+
+.ticket-card {
+    background: #fff;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+}
+
+.ticket-title {
+    text-align: center;
+    color:#6a0b0b;
+    margin-bottom: 20px;
+}
+
+.ticket-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 8px 0;
+    font-size: 16px;
+}
+
+.ticket-row .label {
+    font-weight: 600;
+    color: #6a0b0b;
+}
+
+.print-btn {
+    display: block;
+    width: 100%;
+    margin-top: 20px;
+    background:#6a0b0b;
+    color: #fff;
+    padding: 12px 0;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.print-btn:hover {
+    background: #6a0b0b;
+}
+
+@media print {
+    body {
+        background: #fff;
+    }
+    .print-btn {
+        display: none;
+    }
+}
+
