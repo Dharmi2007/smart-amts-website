@@ -153,3 +153,9 @@ button {
 .hidden {
   display: none !important;
 }
+
+@media (max-width: 768px) {
+  .left-panel { order: 1; }
+  #map { order: 2; }
+}
+

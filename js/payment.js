@@ -1,50 +1,42 @@
-// ---------- Firebase Setup ----------
+// ---------------- Firebase Setup ----------------
 const firebaseConfig = {
-    apiKey: "AIzaSyCt8xps-QZ0phnP1cJgjA6nqhiNCGjbH8g",
-    authDomain: "smart-amts-d0ec8.firebaseapp.com",
-    databaseURL: "https://smart-amts-d0ec8-default-rtdb.firebaseio.com",
-    projectId: "smart-amts-d0ec8",
-    storageBucket: "smart-amts-d0ec8.firebasestorage.app",
-    messagingSenderId: "121822205622",
-    appId: "1:121822205622:web:193337ae3482b8602e3817",
-    measurementId: "G-83F1GE9M95"
+  apiKey: "AIzaSyCt8xps-QZ0phnP1cJgjA6nqhiNCGjbH8g",
+  authDomain: "smart-amts-d0ec8.firebaseapp.com",
+  databaseURL: "https://smart-amts-d0ec8-default-rtdb.firebaseio.com",
+  projectId: "smart-amts-d0ec8",
+  storageBucket: "smart-amts-d0ec8.appspot.com",
+  messagingSenderId: "121822205622",
+  appId: "1:121822205622:web:193337ae3482e3817",
+  measurementId: "G-83F1GE9M95"
 };
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
 
-// ---------- Load Trip Info ----------
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+// ---------------- Load Trip Info ----------------
 let tripId = localStorage.getItem('tripId');
 if(!tripId){
     const now = new Date();
-    // Format: TRIP-YYYYMMDD-HHMM
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2,'0');
-    const dd = String(now.getDate()).padStart(2,'0');
-    const hh = String(now.getHours()).padStart(2,'0');
-    const min = String(now.getMinutes()).padStart(2,'0');
-
-    tripId = `TRIP-${yyyy}${mm}${dd}-${hh}${min}`;
+    tripId = `TRIP-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
     localStorage.setItem('tripId', tripId);
 }
 
 // Default passengers count = 1
-const passengersCount = localStorage.getItem('passengers') || 1;
+const passengersCount = Number(localStorage.getItem('passengers')) || 1;
 
-// ---------- Fill Summary Card ----------
+// ---------------- Fill Summary Card ----------------
 const summaryCard = document.getElementById('summaryCard');
 summaryCard.innerHTML = `
 <div class="ticket-summary">
   <div><b>Trip ID:</b> ${tripId}</div>
   <div><b>Passengers:</b> ${passengersCount}</div>
-  <div class="mrp-row"><b>MRP:</b> ₹20</div> <!-- Default MRP -->
+  <div class="mrp-row"><b>MRP:</b> ₹20</div>
 </div>
 `;
 
-// ---------- Payment Method Dynamic Fields ----------
+// ---------------- Payment Method Dynamic Fields ----------------
 const paymentMethodSelect = document.getElementById('paymentMethod');
 const paymentFieldsDiv = document.getElementById('paymentFields');
-
-paymentMethodSelect.addEventListener('change', updatePaymentFields);
 
 function updatePaymentFields() {
     const method = paymentMethodSelect.value;
@@ -65,11 +57,12 @@ function updatePaymentFields() {
 
 // Initialize fields
 updatePaymentFields();
+paymentMethodSelect.addEventListener('change', updatePaymentFields);
 
-// ---------- Pay Button ----------
+// ---------------- Pay Button ----------------
 document.getElementById('payBtn').onclick = function() {
-    const name = document.getElementById('passengerName').value;
-    const phone = document.getElementById('passengerPhone').value;
+    const name = document.getElementById('passengerName').value.trim();
+    const phone = document.getElementById('passengerPhone').value.trim();
     const method = paymentMethodSelect.value;
 
     if(!name || !phone){
@@ -79,36 +72,54 @@ document.getElementById('payBtn').onclick = function() {
 
     let paymentInfo = {};
     if(method === 'upi'){
-        const upi = document.getElementById('upiId').value;
+        const upi = document.getElementById('upiId').value.trim();
         if(!upi){ alert("Enter UPI ID"); return; }
         paymentInfo.upi = upi;
     } else if(method === 'card'){
-        const cardNumber = document.getElementById('cardNumber').value;
-        const expiry = document.getElementById('cardExpiry').value;
-        const cvv = document.getElementById('cardCvv').value;
+        const cardNumber = document.getElementById('cardNumber').value.trim();
+        const expiry = document.getElementById('cardExpiry').value.trim();
+        const cvv = document.getElementById('cardCvv').value.trim();
         if(!cardNumber || !expiry || !cvv){ alert("Fill all card details"); return; }
-        paymentInfo.cardNumber = cardNumber;
-        paymentInfo.expiry = expiry;
-        paymentInfo.cvv = cvv;
+        paymentInfo = { cardNumber, expiry, cvv };
     }
 
-    // ---------- Payment Data ----------
-    const paymentData = {
-        tripId,
-        passengersCount,
-        passengerName: name,
-        phone,
-        method,
-        paymentInfo,
-        amount: 20, // Default MRP
-        status: "Paid",
-        timestamp: Date.now()
-    };
+    // ---------------- Save trip info to localStorage ----------------
+    const now = new Date();
+    localStorage.setItem('busNo', localStorage.getItem('busNo') || "AMTS 102");
+    localStorage.setItem('from', localStorage.getItem('from') || "");
+    localStorage.setItem('to', localStorage.getItem('to') || "");
+    localStorage.setItem('passengerName', name);
+    localStorage.setItem('passengers', localStorage.getItem('passengers') || 1);
+    localStorage.setItem('date', now.toLocaleDateString('en-GB'));
+    localStorage.setItem('time', now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    localStorage.setItem('fare', 20);
 
-    db.ref('payments').push(paymentData)
+    // ---------------- Save to Firebase ----------------
+    const tripRef = database.ref('tripRegistrations').push();
+    tripRef.set({
+        tripId: tripId,
+        busNumber: localStorage.getItem('busNo'),
+        from: localStorage.getItem('from'),
+        to: localStorage.getItem('to'),
+        passengers: Number(localStorage.getItem('passengers')) || 1,
+        passengerName: name,
+        phone: phone,
+        paymentMethod: method,
+        paymentInfo: paymentInfo,
+        amount: 20,
+        paymentStatus: "Paid",
+        source: "ticket",
+        timestamp: Date.now()
+    })
     .then(() => {
+        // ✅ Payment saved successfully
         alert("Payment Successful! Ticket Confirmed 🎉");
-        window.location.href = "ticket.html"; // redirect to ticket
+        window.location.href = "ticket.html"; // Redirect to ticket page
+    })
+    .catch(err => {
+        console.error("Firebase Push Error:", err);
+        alert("Payment failed! Check console for details.");
+        // Still redirect to ticket page even if Firebase fails
+        window.location.href = "ticket.html";
     });
 };
-
