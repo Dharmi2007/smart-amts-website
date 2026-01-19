@@ -26,7 +26,7 @@
 
 <!-- ================= AI INSIGHTS ================= -->
 <div class="card insight-card">
-  <h3>🧠 Smart Insights (AI Generated)</h3>
+  <h3>🧠 Smart Insights</h3>
   <ul id="aiInsights">
     <li>Analyzing data...</li>
   </ul>
@@ -62,40 +62,52 @@
   <div id="feedbackList"></div>
 </div>
 
-<!-- ================= CROWD ANALYTICS SUMMARY ================= -->
+<!-- ================= CROWD ANALYTICS ================= -->
 <div class="card" onclick="toggleCrowdAnalytics()" style="cursor:pointer">
   📊 Crowd Analytics
-  <p style="font-size:12px;color:#777;">
-    Click to view crowd & demand insights
-  </p>
+  <p style="font-size:12px;color:#777;">Click to view crowd & demand insights</p>
 </div>
 
-<!-- ================= CROWD ANALYTICS PANEL ================= -->
 <div id="crowdSection" class="feedback-box" style="display:none;">
-
   <h3>🚍 Crowd Analytics</h3>
 
-  <!-- Feedback-based crowd -->
-  <div id="peakCrowdBus" style="margin:8px 0;"></div>
-  <div id="peakCrowdTime" style="margin:8px 0;"></div>
+  <div id="peakCrowdBus"></div>
+  <div id="peakCrowdTime"></div>
 
-  <h4 style="margin-top:12px;">Bus-wise Crowd Level (Feedback)</h4>
+  <h4>Bus-wise Crowd Level</h4>
   <div id="crowdBusList"></div>
 
-  <!-- ================= NEW: DEMAND INSIGHTS ================= -->
-  <hr style="margin:16px 0;">
+  <hr>
 
-  <h4>📈 Demand-Based Crowd Insights (Trip Registration)</h4>
+  <h4>📈 Demand-Based Crowd Insights</h4>
   <p style="font-size:12px;color:#777;">
-    Based on passenger trip registrations (no payment data)
+    Based on passenger trip registrations
   </p>
-
-  <h4 style="margin-top:10px;">Estimated Passenger Demand</h4>
   <div id="demandBusList"></div>
-
 </div>
 
-<!-- ================= SOS ALERTS ================= -->
+<!-- ================= SERVICE ALERT (ADMIN SEND) ================= -->
+<div class="card">
+  <h3>📢 Send Service Alert</h3>
+
+  <input id="alertTitle" placeholder="Alert Title (e.g. Route 12 Delayed)">
+  <textarea id="alertMessage" placeholder="Alert Message"></textarea>
+
+  <select id="alertType">
+    <option value="delay">Route Delay</option>
+    <option value="new_route">New Route</option>
+    <option value="resume">Service Resumed</option>
+    <option value="emergency">Emergency</option>
+  </select>
+
+  <input id="alertRoute" placeholder="Route Number (Optional)">
+
+  <button onclick="sendServiceAlert()" style="background:#c00;color:white;">
+    🚨 Send Alert
+  </button>
+</div>
+
+<!-- ================= SOS ALERTS (FROM PASSENGERS) ================= -->
 <div class="card" onclick="toggleAlerts()" style="cursor:pointer">
   🚨 SOS / Emergency Alerts
   <p style="font-size:12px;color:#777;">Click to view latest alerts</p>

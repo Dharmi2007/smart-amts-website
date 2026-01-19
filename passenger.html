@@ -5,18 +5,71 @@
 
   <link rel="stylesheet" href="css/passenger.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ALERT STYLES -->
+  <style>
+    .alert-btn {
+      background:#c00;
+      color:#fff;
+      border:none;
+      padding:6px 12px;
+      border-radius:20px;
+      cursor:pointer;
+    }
+
+    .alert-panel {
+      position: fixed;
+      right: 20px;
+      bottom: 90px;
+      width: 350px;
+      max-height: 420px;
+      background: rgba(0,0,0,0.9);
+      color: white;
+      padding: 15px;
+      border-radius: 16px;
+      display: none;
+      overflow-y: auto;
+      z-index: 9999;
+    }
+
+    .alert-card {
+      padding: 10px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .alert-card.delay { background: rgba(255,165,0,0.3); }
+    .alert-card.new_route { background: rgba(0,140,255,0.3); }
+    .alert-card.resume { background: rgba(0,200,100,0.3); }
+    .alert-card.emergency { background: rgba(255,0,0,0.45); }
+  </style>
 </head>
 
 <body>
 
+<!-- ================= HEADER ================= -->
 <header class="app-header">
   <div class="logo-title">
     <img src="images/logo.jpeg" class="logo">
     <span class="title">Smart AMTS</span>
   </div>
-  <button class="map-btn" onclick="toggleMap()">Live Map</button>
+
+  <div>
+    <button class="alert-btn" onclick="toggleAlerts()">
+      🔔 Alerts <span id="alertCount">0</span>
+    </button>
+    <button class="map-btn" onclick="toggleMap()">Live Map</button>
+  </div>
 </header>
+
+<!-- ================= ALERT PANEL ================= -->
+<div id="alertPanel" class="alert-panel">
+  <h3>📢 Service Alerts</h3>
+  <div id="alertsList"></div>
+</div>
 
 <div class="container">
   <div class="layout" id="layoutContainer">
@@ -49,32 +102,31 @@
         <div id="busList"></div>
       </div>
 
- <!-- ========= NEW FEATURE: TRIP REGISTRATION ========= -->
-<div class="card" id="tripRegistrationCard">
-  <h3>🧾 Trip Registration (Demand Insight)</h3>
+      <!-- ========= TRIP REGISTRATION ========= -->
+      <div class="card" id="tripRegistrationCard">
+        <h3>🧾 Trip Registration (Demand Insight)</h3>
 
-  <label>Bus Number</label>
+        <label>Bus Number</label>
         <input id="intentBus" placeholder="Enter or select bus">
 
-  <label>Passenger Name</label>
-<input id="intentPassengerName" placeholder="Enter passenger name">
+        <label>Passenger Name</label>
+        <input id="intentPassengerName" placeholder="Enter passenger name">
 
-  <label>From</label>
-  <input id="intentFrom" placeholder="Starting location">
+        <label>From</label>
+        <input id="intentFrom" placeholder="Starting location">
 
-  <label>To</label>
-  <input id="intentTo" placeholder="Destination">
+        <label>To</label>
+        <input id="intentTo" placeholder="Destination">
 
-  <label>Number of Passengers</label>
-  <input type="number" id="intentPassengers" min="1" value="1">
+        <label>Number of Passengers</label>
+        <input type="number" id="intentPassengers" min="1" value="1">
 
-  <button onclick="registerTripAndProceed()">Register Trip & Pay</button>
+        <button onclick="registerTripAndProceed()">Register Trip & Pay</button>
 
-  <p style="font-size:12px;color:#777;margin-top:6px;">
-    * Used for demand estimation & peak-hour analysis. No payment required.
-  </p>
-</div>
-
+        <p style="font-size:12px;color:#777;margin-top:6px;">
+          * Used for demand estimation & peak-hour analysis. No payment required.
+        </p>
+      </div>
 
       <!-- ========= NEARBY BUSES ========= -->
       <div class="card">
@@ -152,12 +204,48 @@
     projectId: "smart-amts-d0ec8",
     storageBucket: "smart-amts-d0ec8.firebasestorage.app",
     messagingSenderId: "121822205622",
-    appId: "1:121822205622:web:193337ae3482b8602e3817",
-    measurementId: "G-83F1GE9M95"
+    appId: "1:121822205622:web:193337ae3482b8602e3817"
   };
 
   firebase.initializeApp(firebaseConfig);
-  window.db = firebase.database();
+  const db = firebase.database();
+
+  /* ================= ALERT LISTENER ================= */
+  const alertRef = db.ref("alerts");
+
+  alertRef.on("value", snapshot => {
+    const alerts = snapshot.val();
+    const list = document.getElementById("alertsList");
+    list.innerHTML = "";
+
+    let count = 0;
+
+    for (let id in alerts) {
+      const a = alerts[id];
+      if (!a.active) continue;
+
+      count++;
+
+      list.innerHTML += `
+        <div class="alert-card ${a.type}">
+          <b>${a.title}</b>
+          <p>${a.message}</p>
+          <small>${new Date(a.createdAt).toLocaleString()}</small>
+        </div>
+      `;
+
+      if (a.type === "emergency") {
+        alert("🚨 EMERGENCY ALERT\n" + a.message);
+      }
+    }
+
+    document.getElementById("alertCount").innerText = count;
+  });
+
+  function toggleAlerts() {
+    const panel = document.getElementById("alertPanel");
+    panel.style.display = panel.style.display === "block" ? "none" : "block";
+  }
 </script>
 
 <script src="js/passenger.js"></script>

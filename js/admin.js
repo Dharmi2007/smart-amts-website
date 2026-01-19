@@ -565,3 +565,29 @@ function markAlertHandled(id){
     }
 }
 
+function sendServiceAlert() {
+  const title = document.getElementById("alertTitle").value;
+  const message = document.getElementById("alertMessage").value;
+  const type = document.getElementById("alertType").value;
+  const route = document.getElementById("alertRoute").value;
+
+  if (!title || !message) {
+    alert("Please enter alert title and message");
+    return;
+  }
+
+  firebase.database().ref("alerts").push({
+    title,
+    message,
+    type,
+    route,
+    createdAt: Date.now(),
+    active: true
+  });
+
+  alert("✅ Service Alert Sent");
+
+  document.getElementById("alertTitle").value = "";
+  document.getElementById("alertMessage").value = "";
+  document.getElementById("alertRoute").value = "";
+}
